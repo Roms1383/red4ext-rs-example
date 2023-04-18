@@ -11,18 +11,31 @@ define_plugin! {
 }
 
 fn sum_ints(ints: Vec<i32>) -> i32 {
+    log(
+        CName::new("DEBUG"),
+        format!(
+            "received: {}",
+            ints.iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        ),
+    );
     ints.iter().sum()
 }
 
 /// show how to call .reds static native function back with multiple parameters
 fn log(channel: CName, message: impl Into<String>) {
-    let message = message.into();
-    call!("LogChannel;CNameString" (channel, format!("[RUST] {}", message)) -> ());
+    let message = format!("[RUST] {}", message.into());
+    // call!("LogChannel" (channel, message) -> ()); crashes
+    // call!("LogChannel;" (channel, message) -> ()); crashes
+    // call!("LogChannel;CNameString" (channel, message) -> ()); crashes
+    call!("TestIt.LogIt;CNameString" (channel, message) -> ());
 }
 
 /// ref<IScriptable> can also be sent back and forth, and called methods onto
 fn also_refs(instance: Ref<ffi::IScriptable>) {
-    let is_player = call!(instance, "IsExactlyA" ("PlayerPuppet") -> bool); // method from IScriptable
+    let is_player = call!(instance, "IsExactlyA" (CName::new("PlayerPuppet")) -> bool); // method from IScriptable
     let is_replacer = is_player && call!(instance, "IsReplacer" () -> bool); // methode from PlayerPuppet
     match (is_player, is_replacer) {
         (false, _) => log(

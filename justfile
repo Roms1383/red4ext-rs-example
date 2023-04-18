@@ -21,13 +21,14 @@ _default:
 
 # copy .reds files to game folder (can be hot-reloaded in-game)
 hot-reload:
- cp -R '{{redscript_repo_dir}}' '{{ join(redscript_game_dir, mod_name) }}'
+ mkdir -p '{{ join(redscript_game_dir, mod_name) }}'
+ cp -Rf '{{redscript_repo_dir}}'/. '{{ join(redscript_game_dir, mod_name) }}'
 
 # copy all files to game folder (before launching the game)
 install:
  cargo build --release
  mkdir -p '{{ join(red4ext_game_dir, mod_name) }}'
- cp '{{ join(red4ext_repo_dir, bin_name) }}' '{{ join(red4ext_game_dir, mod_name, bin_name) }}'
+ cp -f '{{ join(red4ext_repo_dir, bin_name) }}' '{{ join(red4ext_game_dir, mod_name, bin_name) }}'
  @just hot-reload
 
 # remove all files from game folder

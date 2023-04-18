@@ -1,7 +1,5 @@
 module TestIt
 
-import TestIt.AlsoRefs
-
 // give it a try in CET console with:
 // Game.GetPlayer():TrySumInts()
 @addMethod(PlayerPuppet)
@@ -13,5 +11,6 @@ public func TrySumInts() -> Void {
 // Game.GetPlayer():TryRefsExample()
 @addMethod(PlayerPuppet)
 public func TryRefsExample() -> Void {
+ LogChannel(n"DEBUG", NameToString(this.GetClassName()));
  AlsoRefs(this);
 }

@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 name = "example"
 
 [dependencies]
-red4ext-rs = { git = "https://github.com/jac3km4/red4ext-rs.git", rev = "v0.1.11" }
+red4ext-rs = { path = "../red4ext-rs" }
