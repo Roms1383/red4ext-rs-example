@@ -29,7 +29,6 @@ install:
  mkdir -p '{{ join(red4ext_game_dir, mod_name) }}'
  cp '{{ join(red4ext_repo_dir, bin_name) }}' '{{ join(red4ext_game_dir, mod_name, bin_name) }}'
  @just hot-reload
- cd '{{ join(game_dir, "tools", "redmod", "bin") }}' && ./redMod.exe deploy -root="{{game_dir}}"
 
 # remove all files from game folder
 uninstall:
