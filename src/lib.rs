@@ -21,7 +21,7 @@ fn log(channel: CName, message: impl Into<String>) {
 }
 
 /// ref<IScriptable> can also be sent back and forth, and called methods onto
-fn also_refs(instance: Ref<ffi::IScriptable>) -> Ref<ffi::IScriptable> {
+fn also_refs(instance: Ref<ffi::IScriptable>) {
     let is_player = call!(instance, "IsExactlyA" ("PlayerPuppet") -> bool); // method from IScriptable
     let is_replacer = is_player && call!(instance, "IsReplacer" () -> bool); // methode from PlayerPuppet
     match (is_player, is_replacer) {
@@ -38,5 +38,4 @@ fn also_refs(instance: Ref<ffi::IScriptable>) -> Ref<ffi::IScriptable> {
             "call method from instance: is a player BUT is NOT a replacer",
         ),
     };
-    instance
 }
