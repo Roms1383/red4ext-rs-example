@@ -10,11 +10,12 @@ define_plugin! {
         register_function!("CreateTweakDBID", create_tweakdb_id);
         register_function!("AppendToTweakDBID", append_to_tweakdb_id);
         register_function!("Consume", consume);
+        register_function!("Attach", attach);
     }
 }
 
 /// SumInts
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), SumInts({2000, 77}));
@@ -24,7 +25,7 @@ fn sum_ints(ints: Vec<i32>) -> i32 {
 }
 
 /// PluginName
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), PluginName());
@@ -34,7 +35,7 @@ fn plugin_name() -> String {
 }
 
 /// CreateTweakDBID
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), TDBID.ToStringDEBUG(CreateTweakDBID("A.Test")));
@@ -43,9 +44,8 @@ fn create_tweakdb_id(name: String) -> TweakDBID {
     TweakDBID::new(&name)
 }
 
-
 /// AppendToTweakDBID
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), TDBID.Create("A.Test") == AppendToTweakDBID(TDBID.Create("A."), "Test"));
@@ -55,7 +55,7 @@ fn append_to_tweakdb_id(base: TweakDBID, suffix: String) -> TweakDBID {
 }
 
 /// Consume
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// Consume(NewObject("Consumptions"), Consumable.BlackLace);
@@ -95,4 +95,38 @@ unsafe impl NativeRepr for Consumable {
 
 pub trait Consume {
     fn consume(&self, consumable: Consumable);
+}
+
+#[derive(Clone, Default)]
+#[repr(transparent)]
+pub struct GameInstance;
+
+#[derive(Clone, Default)]
+#[repr(transparent)]
+pub struct CallbackSystem(Ref<IScriptable>);
+
+#[redscript_import]
+impl GameInstance {
+    fn get_callback_system() -> Ref<IScriptable>;
+}
+
+#[redscript_import]
+impl CallbackSystem {
+    /// public native func RegisterCallback(event: CName, target: ref<IScriptable>, function: CName, opt sticky: Bool)
+    #[redscript(native)]
+    pub fn register_callback(&self, event: CName, target: Ref<IScriptable>, func: CName) -> ();
+}
+
+#[derive(Clone, Default)]
+#[repr(transparent)]
+pub struct MyEntityWatcher(Ref<IScriptable>);
+
+fn attach(watcher: Ref<IScriptable>) -> Ref<IScriptable> {
+    let system = CallbackSystem(GameInstance::get_callback_system());
+    system.register_callback(
+        CName::new("Entity/Assemble"),
+        watcher,
+        CName::new("OnEntityAssemble"),
+    );
+    system.0
 }
