@@ -59,10 +59,11 @@ fn append_to_tweakdb_id(base: TweakDBID, suffix: String) -> TweakDBID {
 /// test in CET like:
 /// ```lua
 /// Consume(NewObject("Consumptions"), Consumable.BlackLace);
+/// // or
+/// NewObject("Consumptions").Consume(Consumable.BlackLace);
 /// ```
 fn consume(consumptions: Ref<IScriptable>, consumable: Consumable) {
-    let o: Consumptions = Consumptions(consumptions);
-    o.consume_rust(consumable);
+    Consumptions(consumptions).consume(consumable);
 }
 
 #[derive(Clone, Default)]
@@ -71,12 +72,12 @@ struct Consumptions(Ref<IScriptable>);
 
 #[redscript_import]
 impl Consumptions {
-    pub fn consume_reds(&self, consumable: Consumable) -> ();
+    pub fn remote_consume(&self, consumable: Consumable) -> ();
 }
 
-impl Consumptions {
-    fn consume_rust(&self, consumable: Consumable) {
-        self.consume_reds(consumable);
+impl Consume for Consumptions {
+    fn consume(&self, consumable: Consumable) {
+        self.remote_consume(consumable);
     }
 }
 
@@ -90,4 +91,8 @@ pub enum Consumable {
 
 unsafe impl NativeRepr for Consumable {
     const NAME: &'static str = "Consumable";
+}
+
+pub trait Consume {
+    fn consume(&self, consumable: Consumable);
 }

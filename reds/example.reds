@@ -6,8 +6,12 @@ native func AppendToTweakDBID(base: TweakDBID, suffix: String) -> TweakDBID;
 native func Consume(consumptions: ref<Consumptions>, consumable: Consumable) -> Void;
 
 public class Consumptions {
- public func ConsumeReds(consumable: Consumable) -> Void {
-  LogChannel(n"DEBUG", s"called with consumable \(ToString(consumable)) \(consumable) \(EnumInt(consumable))");
+ func RemoteConsume(consumable: Consumable) -> Void {
+  LogChannel(n"DEBUG", s"called with consumable \(ToString(consumable))");
+ }
+ /// pipe to global native
+ public func Consume(consumable: Consumable) -> Void {
+  Consume(this, consumable);
  }
  static func New() -> ref<Consumptions> { return new Consumptions(); }
 }
