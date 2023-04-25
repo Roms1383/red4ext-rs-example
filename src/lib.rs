@@ -14,7 +14,7 @@ define_plugin! {
 }
 
 /// SumInts
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), SumInts({2000, 77}));
@@ -24,7 +24,7 @@ fn sum_ints(ints: Vec<i32>) -> i32 {
 }
 
 /// PluginName
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), PluginName());
@@ -34,7 +34,7 @@ fn plugin_name() -> String {
 }
 
 /// CreateTweakDBID
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), TDBID.ToStringDEBUG(CreateTweakDBID("A.Test")));
@@ -43,9 +43,8 @@ fn create_tweakdb_id(name: String) -> TweakDBID {
     TweakDBID::new(&name)
 }
 
-
 /// AppendToTweakDBID
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// LogChannel(CName.new("DEBUG"), TDBID.Create("A.Test") == AppendToTweakDBID(TDBID.Create("A."), "Test"));
@@ -55,7 +54,7 @@ fn append_to_tweakdb_id(base: TweakDBID, suffix: String) -> TweakDBID {
 }
 
 /// Consume
-/// 
+///
 /// test in CET like:
 /// ```lua
 /// Consume(NewObject("Consumptions"), Consumable.BlackLace);
@@ -77,6 +76,11 @@ impl Consumptions {
 
 impl Consume for Consumptions {
     fn consume(&self, consumable: Consumable) {
+        GameObject::play_sound(
+            GameObject(self.clone().0),
+            CName::new("ono_v_greet"),
+            CName::new("RED4EXT-RS"),
+        );
         self.remote_consume(consumable);
     }
 }
@@ -95,4 +99,19 @@ unsafe impl NativeRepr for Consumable {
 
 pub trait Consume {
     fn consume(&self, consumable: Consumable);
+}
+
+#[derive(Clone, Default)]
+#[repr(transparent)]
+struct GameObject(Ref<IScriptable>);
+
+#[redscript_import]
+impl GameObject {
+    /// public static PlaySound(self: GameObject, eventName: CName, opt emitterName: CName): Void
+    #[allow(non_snake_case)]
+    pub fn play_sound(s: Self, eventName: CName, emitterName: CName) -> ();
+}
+
+unsafe impl NativeRepr for GameObject {
+    const NAME: &'static str = "GameObject";
 }
