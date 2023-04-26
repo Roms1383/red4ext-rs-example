@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::cell::RefCell;
+
 use red4ext_rs::prelude::*;
 
 define_plugin! {
@@ -11,10 +13,16 @@ define_plugin! {
     }
 }
 
+thread_local!(static TIMES: RefCell<u32> = RefCell::new(0));
+
 fn initialize(player: Ref<IScriptable>) -> () {
     // here it seems return param can be typed
     let event = call!("CreateBootEvent;" () -> BootEvent);
-    PlayerPuppet(player).queue_event(event.0);
+    TIMES.with(|f| {
+        *f.borrow_mut() += 1;
+    });
+    event.set_times(TIMES.with(|f| *f.borrow()));
+    PlayerPuppet(player).queue_event(Event(event.0));
     info!("@initialize");
 }
 
@@ -28,7 +36,16 @@ unsafe impl NativeRepr for Event {
 
 #[derive(Default, Clone)]
 #[repr(transparent)]
-struct BootEvent(Event);
+struct BootEvent(Ref<IScriptable>);
+
+#[redscript_import]
+impl Event {}
+
+#[redscript_import]
+impl BootEvent {
+    #[redscript]
+    fn set_times(&self, times: u32) -> ();
+}
 
 unsafe impl NativeRepr for BootEvent {
     const NAME: &'static str = "handle:BootEvent";
