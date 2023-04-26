@@ -16,20 +16,19 @@ define_plugin! {
 
 static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
 
-fn initialize() {
-    let controller = BiomonitorController(call!("BiomonitorExt.BiomonitorController.Create" () -> Ref<IScriptable>));
+fn initialize(controller: Ref<IScriptable>) -> () {
     let biomonitor = Biomonitor::Initialized {
-        owner: controller,
+        owner: BiomonitorControllerRS(controller),
         chemicals: Default::default(),
     };
-    let event = Event(call!("BiomonitorExt.BiomonitorEvents.Boot" () -> Ref<IScriptable>));
+    let event = Event(call!("NewObject;String" ("BootEvent".to_string()) -> Ref<IScriptable>));
     biomonitor.owner().unwrap().queue_event(event.0);
     *BIOMON.lock().unwrap() = State::Booting;
 }
 
 #[derive(Clone, Default)]
 #[repr(transparent)]
-struct BiomonitorController(Ref<IScriptable>);
+struct BiomonitorControllerRS(Ref<IScriptable>);
 
 #[derive(Clone, Default)]
 #[repr(transparent)]
@@ -40,7 +39,7 @@ enum Biomonitor {
     #[default]
     Uninitialized,
     Initialized {
-        owner: BiomonitorController,
+        owner: BiomonitorControllerRS,
         chemicals: Vec<Ref<IScriptable>>,
     },
 }
@@ -52,7 +51,7 @@ impl Biomonitor {
             Biomonitor::Initialized { chemicals, .. } => Some(&chemicals),
         }
     }
-    fn owner(&self) -> Option<&BiomonitorController> {
+    fn owner(&self) -> Option<&BiomonitorControllerRS> {
         match self {
             Biomonitor::Uninitialized => None,
             Biomonitor::Initialized { owner, .. } => Some(owner),
@@ -61,13 +60,13 @@ impl Biomonitor {
 }
 
 #[redscript_import]
-impl BiomonitorController {
+impl BiomonitorControllerRS {
     #[redscript(native)]
     fn queue_event(&self, event: Ref<IScriptable>) -> ();
 }
 
-unsafe impl NativeRepr for BiomonitorController {
-    const NAME: &'static str = "handle:BiomonitorExt.BiomonitorController";
+unsafe impl NativeRepr for BiomonitorControllerRS {
+    const NAME: &'static str = "handle:BiomonitorControllerRS";
 }
 
 #[derive(Clone, Debug, Default)]
@@ -80,8 +79,4 @@ enum State {
     Summarizing = 3,
     Closing = 4,
     Dismissing = 5,
-}
-
-unsafe impl NativeRepr for State {
-    const NAME: &'static str = "BiomonitorExt.State";
 }
