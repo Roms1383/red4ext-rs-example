@@ -2,16 +2,20 @@ import Codeware.UI.inkCustomController
 
 /// invoke in CET like:
 /// ```lua
-/// Initialize(NewObject("BiomonitorControllerRS"));
+/// Initialize(Game.GetPlayer());
 /// ```
-native func Initialize(controller: ref<IScriptable>) -> Void;
+native func Initialize(player: ref<IScriptable>) -> Void;
 
-public class BiomonitorControllerRS extends inkCustomController {
- protected cb func OnBoot(evt: ref<BootEvent>) -> Void {
-  LogChannel(n"DEBUG", s"on boot");
- }
-}
-
-public static func CreateBootEvent() -> ref<Event> { return new BootEvent() as Event; }
+public static func CreateBootEvent() -> ref<BootEvent> { return new BootEvent(); }
 
 class BootEvent extends Event {}
+
+@addMethod(PlayerPuppet)
+protected cb func OnBoot(evt: ref<BootEvent>) -> Void {
+ LogChannel(n"DEBUG", s"on boot");
+}
+
+@addMethod(PlayerPuppet)
+protected cb func OnAnyEvent(evt: ref<Event>) -> Void {
+ LogChannel(n"DEBUG", s"on any event: \(NameToString(evt.GetClassName()))");
+}
