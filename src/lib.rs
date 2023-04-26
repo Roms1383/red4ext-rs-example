@@ -17,13 +17,11 @@ define_plugin! {
 static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
 
 fn initialize(controller: Ref<IScriptable>) -> () {
-    let biomonitor = Biomonitor::Initialized {
+    let _biomonitor = Biomonitor::Initialized {
         owner: BiomonitorControllerRS(controller),
         chemicals: Default::default(),
     };
-    let event = Event(call!("NewObject;String" ("BootEvent".to_string()) -> Ref<IScriptable>));
-    biomonitor.owner().unwrap().queue_event(event.0);
-    *BIOMON.lock().unwrap() = State::Booting;
+    info!("biomonitor initialized");
 }
 
 #[derive(Clone, Default)]
