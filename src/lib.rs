@@ -14,6 +14,7 @@ define_plugin! {
 }
 
 thread_local!(static TIMES: RefCell<u32> = RefCell::new(0));
+thread_local!(static PLAYER: RefCell<Option<PlayerPuppet>> = RefCell::new(None));
 
 #[redscript_global(name = "BootEvent::New")]
 fn create_boot_event() -> BootEvent;
@@ -24,8 +25,17 @@ fn initialize(player: Ref<IScriptable>) -> () {
     TIMES.with(|f| {
         *f.borrow_mut() += 1;
     });
+    // SAFETY: ok this is just an experiment
+    // handle could change over time
+    // also Ref<IScriptable> currently does not impl PartialEq
+    PLAYER.with(|f| {
+        let mut v = f.borrow_mut();
+        if v.is_none() {
+            *v = Some(PlayerPuppet(player.clone()));
+        }
+    });
     event.set_times(TIMES.with(|f| *f.borrow()));
-    PlayerPuppet(player).queue_event(Event(event.0));
+    PLAYER.with(|f| f.borrow().as_ref().unwrap().queue_event(Event(event.0)));
     info!("@initialize");
 }
 
