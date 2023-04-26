@@ -12,4 +12,6 @@ public class BiomonitorControllerRS extends inkCustomController {
  }
 }
 
+public static func CreateBootEvent() -> ref<Event> { return new BootEvent() as Event; }
+
 class BootEvent extends Event {}

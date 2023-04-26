@@ -1,8 +1,7 @@
 #![allow(dead_code)]
 
-use std::sync::Mutex;
+use std::cell::RefCell;
 
-use once_cell::sync::Lazy;
 use red4ext_rs::prelude::*;
 
 define_plugin! {
@@ -14,13 +13,18 @@ define_plugin! {
     }
 }
 
-static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
+thread_local!(static BIOMON: RefCell<Biomonitor> = RefCell::new(Biomonitor::Uninitialized));
 
 fn initialize(controller: Ref<IScriptable>) -> () {
-    let _biomonitor = Biomonitor::Initialized {
+    let biomonitor = Biomonitor::Initialized {
         owner: BiomonitorControllerRS(controller),
         chemicals: Default::default(),
     };
+    let event = call!("CreateBootEvent;" () -> Event);
+    biomonitor.owner().unwrap().queue_event(event);
+    BIOMON.with(move |biomon| {
+        *biomon.borrow_mut() = biomonitor;
+    });
     info!("biomonitor initialized");
 }
 
@@ -31,6 +35,10 @@ struct BiomonitorControllerRS(Ref<IScriptable>);
 #[derive(Clone, Default)]
 #[repr(transparent)]
 struct Event(Ref<IScriptable>);
+
+unsafe impl NativeRepr for Event {
+    const NAME: &'static str = "handle:redEvent";
+}
 
 #[derive(Clone, Default)]
 enum Biomonitor {
@@ -60,7 +68,7 @@ impl Biomonitor {
 #[redscript_import]
 impl BiomonitorControllerRS {
     #[redscript(native)]
-    fn queue_event(&self, event: Ref<IScriptable>) -> ();
+    fn queue_event(&self, event: Event) -> ();
 }
 
 unsafe impl NativeRepr for BiomonitorControllerRS {
@@ -77,4 +85,12 @@ enum State {
     Summarizing = 3,
     Closing = 4,
     Dismissing = 5,
+}
+
+#[derive(Default, Clone)]
+#[repr(transparent)]
+struct BootEvent(Ref<IScriptable>);
+
+unsafe impl NativeRepr for BootEvent {
+    const NAME: &'static str = "handle:BootEvent";
 }
