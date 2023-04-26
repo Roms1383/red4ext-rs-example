@@ -15,9 +15,12 @@ define_plugin! {
 
 thread_local!(static TIMES: RefCell<u32> = RefCell::new(0));
 
+#[redscript_global(name = "BootEvent::New")]
+fn create_boot_event() -> BootEvent;
+
 fn initialize(player: Ref<IScriptable>) -> () {
-    // here it seems return param can be typed
-    let event = call!("CreateBootEvent;" () -> BootEvent);
+    // here it return param can be typed
+    let event = create_boot_event();
     TIMES.with(|f| {
         *f.borrow_mut() += 1;
     });

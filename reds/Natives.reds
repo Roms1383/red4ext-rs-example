@@ -6,11 +6,10 @@ import Codeware.UI.inkCustomController
 /// ```
 native func Initialize(player: ref<IScriptable>) -> Void;
 
-public static func CreateBootEvent() -> ref<BootEvent> { return new BootEvent(); }
-
 class BootEvent extends Event {
  public let times: Uint32;
  func SetTimes(times: Uint32) -> Void { this.times = times; }
+ static func New() -> ref<BootEvent> { return new BootEvent(); }
 }
 
 @addMethod(PlayerPuppet)
