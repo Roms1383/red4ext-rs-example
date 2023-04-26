@@ -17,12 +17,12 @@ define_plugin! {
 static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
 
 fn initialize() {
-    let controller = BiomonitorController(call!("BiomonitorController.Create" () -> Ref<IScriptable>));
+    let controller = BiomonitorController(call!("BiomonitorExt.BiomonitorController.Create" () -> Ref<IScriptable>));
     let biomonitor = Biomonitor::Initialized {
         owner: controller,
         chemicals: Default::default(),
     };
-    let event = Event(call!("BiomonitorEvents.Boot" () -> Ref<IScriptable>));
+    let event = Event(call!("BiomonitorExt.BiomonitorEvents.Boot" () -> Ref<IScriptable>));
     biomonitor.owner().unwrap().queue_event(event.0);
     *BIOMON.lock().unwrap() = State::Booting;
 }
@@ -67,7 +67,7 @@ impl BiomonitorController {
 }
 
 unsafe impl NativeRepr for BiomonitorController {
-    const NAME: &'static str = "handle:BiomonitorController";
+    const NAME: &'static str = "handle:BiomonitorExt.BiomonitorController";
 }
 
 #[derive(Clone, Debug, Default)]
@@ -83,5 +83,5 @@ enum State {
 }
 
 unsafe impl NativeRepr for State {
-    const NAME: &'static str = "State";
+    const NAME: &'static str = "BiomonitorExt.State";
 }
