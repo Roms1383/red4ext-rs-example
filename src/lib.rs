@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use red4ext_rs::prelude::*;
 
 define_plugin! {
@@ -5,49 +7,78 @@ define_plugin! {
     author: "author",
     version: 0:1:0,
     on_register: {
-        register_function!("SumInts", sum_ints);
-        register_function!("PluginName", plugin_name);
-        register_function!("CreateTweakDBID", create_tweakdb_id);
-        register_function!("AppendToTweakDBID", append_to_tweakdb_id);
+        register_function!("Initialize", initialize);
     }
 }
 
-/// SumInts
-///
-/// test in CET like:
-/// ```lua
-/// LogChannel(CName.new("DEBUG"), SumInts({2000, 77}));
-/// ```
-fn sum_ints(ints: Vec<i32>) -> i32 {
-    ints.iter().sum()
+static mut BIOMON: Biomonitor = Biomonitor::Uninitialized;
+
+fn initialize() {
+    let controller = Controller(Controller::create());
+    let biomonitor = Biomonitor::Initialized {
+        owner: controller,
+        chemicals: Default::default(),
+    };
+    let event = Event(call!("Events.Boot;" () -> Ref<IScriptable>));
+    biomonitor.owner().unwrap().queue_event(event.0);
+    unsafe {
+        BIOMON = biomonitor.clone();
+    }
 }
 
-/// PluginName
-///
-/// test in CET like:
-/// ```lua
-/// LogChannel(CName.new("DEBUG"), PluginName());
-/// ```
-fn plugin_name() -> String {
-    String::from("RED4EXT.RS.EXAMPLE")
+#[derive(Clone, Default)]
+#[repr(transparent)]
+struct Controller(Ref<IScriptable>);
+
+#[derive(Clone, Default)]
+#[repr(transparent)]
+struct Event(Ref<IScriptable>);
+
+#[derive(Clone, Default)]
+enum Biomonitor {
+    #[default]
+    Uninitialized,
+    Initialized {
+        owner: Controller,
+        chemicals: Vec<Ref<IScriptable>>,
+    },
 }
 
-/// CreateTweakDBID
-///
-/// test in CET like:
-/// ```lua
-/// LogChannel(CName.new("DEBUG"), TDBID.ToStringDEBUG(CreateTweakDBID("A.Test")));
-/// ```
-fn create_tweakdb_id(name: String) -> TweakDbId {
-    TweakDbId::new(&name)
+impl Biomonitor {
+    fn chemicals(&self) -> Option<&[Ref<IScriptable>]> {
+        match self {
+            Biomonitor::Uninitialized => None,
+            Biomonitor::Initialized { chemicals, .. } => Some(&chemicals),
+        }
+    }
+    fn owner(&self) -> Option<&Controller> {
+        match self {
+            Biomonitor::Uninitialized => None,
+            Biomonitor::Initialized { owner, .. } => Some(owner),
+        }
+    }
 }
 
-/// AppendToTweakDBID
-///
-/// test in CET like:
-/// ```lua
-/// LogChannel(CName.new("DEBUG"), TDBID.Create("A.Test") == AppendToTweakDBID(TDBID.Create("A."), "Test"));
-/// ```
-fn append_to_tweakdb_id(base: TweakDbId, suffix: String) -> TweakDbId {
-    TweakDbId::new_from_base(base, suffix.as_str())
+#[redscript_import]
+impl Controller {
+    fn create() -> Ref<IScriptable>;
+
+    #[redscript(native)]
+    fn queue_event(&self, event: Ref<IScriptable>) -> ();
 }
+
+// #[derive(Clone, Debug, Default)]
+// #[repr(i64)]
+// enum State {
+//     #[default]
+//     Idle = 0,
+//     Booting = 1,
+//     Analyzing = 2,
+//     Summarizing = 3,
+//     Closing = 4,
+//     Dismissing = 5,
+// }
+
+// unsafe impl NativeRepr for State {
+//     const NAME: &'static str = "State";
+// }

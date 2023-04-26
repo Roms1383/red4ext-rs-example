@@ -7,9 +7,11 @@ license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]
+name = "example"
 
 [dependencies]
-red4ext-rs = { git = "https://github.com/jac3km4/red4ext-rs.git", tag = "v0.3.0" }
+red4ext-rs = { git = "https://github.com/jac3km4/red4ext-rs.git", tag = "v0.3.0", features = ["macros"] }
+once_cell = "1.17.1"
 
 [profile.release]
 lto = "thin"
