@@ -1,9 +1,9 @@
 native func Initialize() -> Void;
 
-public class Controller extends inkIGameController {
- static func Create() -> ref<Controller> { 
-  LogChannel(n"DEBUG", "create Controller");
-  return new Controller(); }
+public class BiomonitorController extends inkIGameController {
+ static func Create() -> ref<IScriptable> { 
+  LogChannel(n"DEBUG", "create BiomonitorController");
+  return new BiomonitorController() as IScriptable; }
  protected cb func OnBoot(evt: ref<BootEvent>) -> Bool {
   LogChannel(n"DEBUG", s"on boot");
  }
@@ -11,7 +11,7 @@ public class Controller extends inkIGameController {
 
 class BootEvent extends Event {}
 
-class Events {
+class BiomonitorEvents {
  static func Boot() -> ref<Event> {
   return new BootEvent();
  }

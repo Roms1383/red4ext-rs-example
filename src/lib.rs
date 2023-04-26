@@ -17,19 +17,19 @@ define_plugin! {
 static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
 
 fn initialize() {
-    let controller = Controller(Controller::create());
+    let controller = BiomonitorController(call!("BiomonitorController.Create" () -> Ref<IScriptable>));
     let biomonitor = Biomonitor::Initialized {
         owner: controller,
         chemicals: Default::default(),
     };
-    let event = Event(call!("Events.Boot;" () -> Ref<IScriptable>));
+    let event = Event(call!("BiomonitorEvents.Boot" () -> Ref<IScriptable>));
     biomonitor.owner().unwrap().queue_event(event.0);
     *BIOMON.lock().unwrap() = State::Booting;
 }
 
 #[derive(Clone, Default)]
 #[repr(transparent)]
-struct Controller(Ref<IScriptable>);
+struct BiomonitorController(Ref<IScriptable>);
 
 #[derive(Clone, Default)]
 #[repr(transparent)]
@@ -40,7 +40,7 @@ enum Biomonitor {
     #[default]
     Uninitialized,
     Initialized {
-        owner: Controller,
+        owner: BiomonitorController,
         chemicals: Vec<Ref<IScriptable>>,
     },
 }
@@ -52,7 +52,7 @@ impl Biomonitor {
             Biomonitor::Initialized { chemicals, .. } => Some(&chemicals),
         }
     }
-    fn owner(&self) -> Option<&Controller> {
+    fn owner(&self) -> Option<&BiomonitorController> {
         match self {
             Biomonitor::Uninitialized => None,
             Biomonitor::Initialized { owner, .. } => Some(owner),
@@ -61,11 +61,13 @@ impl Biomonitor {
 }
 
 #[redscript_import]
-impl Controller {
-    fn create() -> Ref<IScriptable>;
-
+impl BiomonitorController {
     #[redscript(native)]
     fn queue_event(&self, event: Ref<IScriptable>) -> ();
+}
+
+unsafe impl NativeRepr for BiomonitorController {
+    const NAME: &'static str = "handle:BiomonitorController";
 }
 
 #[derive(Clone, Debug, Default)]
