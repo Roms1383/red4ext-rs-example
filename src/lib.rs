@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+use std::sync::Mutex;
+
+use once_cell::sync::Lazy;
 use red4ext_rs::prelude::*;
 
 define_plugin! {
@@ -11,7 +14,7 @@ define_plugin! {
     }
 }
 
-static mut BIOMON: Biomonitor = Biomonitor::Uninitialized;
+static BIOMON: Lazy<Mutex<State>> = Lazy::new(|| Mutex::new(State::Idle));
 
 fn initialize() {
     let controller = Controller(Controller::create());
@@ -21,9 +24,7 @@ fn initialize() {
     };
     let event = Event(call!("Events.Boot;" () -> Ref<IScriptable>));
     biomonitor.owner().unwrap().queue_event(event.0);
-    unsafe {
-        BIOMON = biomonitor.clone();
-    }
+    *BIOMON.lock().unwrap() = State::Booting;
 }
 
 #[derive(Clone, Default)]
@@ -67,18 +68,18 @@ impl Controller {
     fn queue_event(&self, event: Ref<IScriptable>) -> ();
 }
 
-// #[derive(Clone, Debug, Default)]
-// #[repr(i64)]
-// enum State {
-//     #[default]
-//     Idle = 0,
-//     Booting = 1,
-//     Analyzing = 2,
-//     Summarizing = 3,
-//     Closing = 4,
-//     Dismissing = 5,
-// }
+#[derive(Clone, Debug, Default)]
+#[repr(i64)]
+enum State {
+    #[default]
+    Idle = 0,
+    Booting = 1,
+    Analyzing = 2,
+    Summarizing = 3,
+    Closing = 4,
+    Dismissing = 5,
+}
 
-// unsafe impl NativeRepr for State {
-//     const NAME: &'static str = "State";
-// }
+unsafe impl NativeRepr for State {
+    const NAME: &'static str = "State";
+}
