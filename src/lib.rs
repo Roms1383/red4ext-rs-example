@@ -20,6 +20,7 @@ fn initialize(controller: Ref<IScriptable>) -> () {
         owner: BiomonitorControllerRS(controller),
         chemicals: Default::default(),
     };
+    // here it seems return param can be typed
     let event = call!("CreateBootEvent;" () -> Event);
     biomonitor.owner().unwrap().queue_event(event);
     BIOMON.with(move |biomon| {
@@ -67,6 +68,7 @@ impl Biomonitor {
 
 #[redscript_import]
 impl BiomonitorControllerRS {
+    // here this HAS to be Event (handle:redEvent)
     #[redscript(native)]
     fn queue_event(&self, event: Event) -> ();
 }
